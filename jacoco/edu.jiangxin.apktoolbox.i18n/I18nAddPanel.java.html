@@ -1,0 +1,440 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>I18nAddPanel.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">APKToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.i18n</a> &gt; <span class="el_source">I18nAddPanel.java</span></div><h1>I18nAddPanel.java</h1><pre class="source lang-java linenums">/**
+ * 
+ */
+package edu.jiangxin.apktoolbox.i18n;
+
+import java.awt.HeadlessException;
+import java.awt.Toolkit;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+
+import org.apache.commons.collections4.map.HashedMap;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.JDOMException;
+import org.jdom2.input.SAXBuilder;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
+
+import edu.jiangxin.apktoolbox.swing.extend.EasyPanel;
+import edu.jiangxin.apktoolbox.utils.Constants;
+import edu.jiangxin.apktoolbox.utils.Utils;
+
+/**
+ * @author jiangxin
+ * @author 2019-04-12
+ *
+ */
+public class I18nAddPanel extends EasyPanel {
+    
+    private static final long serialVersionUID = 1L;
+    
+    private static final String CHARSET = &quot;UTF-8&quot;;
+
+    private static final boolean REMOVE_LAST_LF_OPEN = true;
+
+<span class="nc" id="L57">    private static Map&lt;String, String&gt; replace = new HashedMap&lt;String, String&gt;();</span>
+    
+    private static final int PANEL_WIDTH = Constants.DEFAULT_WIDTH - 50;
+
+    private static final int PANEL_HIGHT = 150;
+    
+    private static final int CHILD_PANEL_HIGHT = 30;
+    
+    private static final int CHILD_PANEL_LEFT_WIDTH = 600;
+    
+    private static final int CHILD_PANEL_RIGHT_WIDTH = 130;
+
+    private JPanel sourcePanel;
+
+    private JTextField srcTextField;
+
+    private JButton srcButton;
+
+    private JPanel targetPanel;
+
+    private JTextField targetTextField;
+
+    private JButton targetButton;
+
+    private JPanel itemPanel;
+
+    private JTextField itemTextField;
+
+    private JLabel itemLabel;
+
+    private JPanel operationPanel;
+
+    private JButton addButton;
+
+    static {
+<span class="nc" id="L92">        replace.put(&quot;&amp;quot;&quot;, &quot;jiangxin001&quot;);</span>
+<span class="nc" id="L93">        replace.put(&quot;&amp;#160;&quot;, &quot;jiangxin002&quot;);</span>
+<span class="nc" id="L94">    }</span>
+    
+    public I18nAddPanel() throws HeadlessException {
+<span class="nc" id="L97">        super();</span>
+<span class="nc" id="L98">        Utils.setJComponentSize(this, PANEL_WIDTH, PANEL_HIGHT);</span>
+<span class="nc" id="L99">        BoxLayout boxLayout = new BoxLayout(this, BoxLayout.Y_AXIS);</span>
+<span class="nc" id="L100">        setLayout(boxLayout);</span>
+
+<span class="nc" id="L102">        createSourcePanel();</span>
+<span class="nc" id="L103">        add(sourcePanel);</span>
+        
+<span class="nc" id="L105">        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+
+<span class="nc" id="L107">        createTargetPanel();</span>
+<span class="nc" id="L108">        add(targetPanel);</span>
+        
+<span class="nc" id="L110">        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+
+<span class="nc" id="L112">        createItemPanel();</span>
+<span class="nc" id="L113">        add(itemPanel);</span>
+        
+<span class="nc" id="L115">        add(Box.createVerticalStrut(Constants.DEFAULT_Y_BORDER));</span>
+
+<span class="nc" id="L117">        createOperationPanel();</span>
+<span class="nc" id="L118">        add(operationPanel);</span>
+<span class="nc" id="L119">    }</span>
+
+    private void createOperationPanel() {
+<span class="nc" id="L122">        operationPanel = new JPanel();</span>
+<span class="nc" id="L123">        Utils.setJComponentSize(operationPanel, PANEL_WIDTH, CHILD_PANEL_HIGHT);</span>
+<span class="nc" id="L124">        operationPanel.setLayout(new BoxLayout(operationPanel, BoxLayout.X_AXIS));</span>
+        
+<span class="nc" id="L126">        addButton = new JButton(bundle.getString(&quot;i18n.add.title&quot;));</span>
+<span class="nc" id="L127">        Utils.setJComponentSize(addButton, CHILD_PANEL_RIGHT_WIDTH, CHILD_PANEL_HIGHT);</span>
+<span class="nc" id="L128">        addButton.addMouseListener(new MouseAdapter() {</span>
+            @Override
+            public void mousePressed(MouseEvent e) {
+<span class="nc" id="L131">                super.mousePressed(e);</span>
+<span class="nc" id="L132">                File srcFile = new File(srcTextField.getText());</span>
+<span class="nc bnc" id="L133" title="All 4 branches missed.">                if (!srcFile.exists() || !srcFile.isDirectory()) {</span>
+<span class="nc" id="L134">                    logger.error(&quot;srcFile is invalid&quot;);</span>
+<span class="nc" id="L135">                    Toolkit.getDefaultToolkit().beep();</span>
+<span class="nc" id="L136">                    JOptionPane.showMessageDialog(I18nAddPanel.this, &quot;Source directory is invalid&quot;, &quot;ERROR&quot;,</span>
+                            JOptionPane.ERROR_MESSAGE);
+<span class="nc" id="L138">                    srcTextField.requestFocus();</span>
+<span class="nc" id="L139">                    return;</span>
+                }
+                String srcPath;
+                try {
+<span class="nc" id="L143">                    srcPath = srcFile.getCanonicalPath();</span>
+<span class="nc" id="L144">                } catch (IOException e2) {</span>
+<span class="nc" id="L145">                    logger.error(&quot;getCanonicalPath fail&quot;);</span>
+<span class="nc" id="L146">                    return;</span>
+<span class="nc" id="L147">                }</span>
+<span class="nc" id="L148">                conf.setProperty(&quot;i18n.add.src.dir&quot;, srcPath);</span>
+
+<span class="nc" id="L150">                List&lt;String&gt; targetPaths = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L151">                String[] tmps = targetTextField.getText().split(&quot;;&quot;);</span>
+<span class="nc bnc" id="L152" title="All 2 branches missed.">                for (String tmp : tmps) {</span>
+<span class="nc" id="L153">                    File targetFile = new File(tmp);</span>
+<span class="nc bnc" id="L154" title="All 4 branches missed.">                    if (!targetFile.exists() || !targetFile.isDirectory()) {</span>
+<span class="nc" id="L155">                        logger.error(&quot;targetFile is invalid&quot;);</span>
+<span class="nc" id="L156">                        Toolkit.getDefaultToolkit().beep();</span>
+<span class="nc" id="L157">                        JOptionPane.showMessageDialog(I18nAddPanel.this, &quot;Target directory is invalid&quot;, &quot;ERROR&quot;,</span>
+                                JOptionPane.ERROR_MESSAGE);
+<span class="nc" id="L159">                        targetTextField.requestFocus();</span>
+<span class="nc" id="L160">                        return;</span>
+                    }
+                    try {
+<span class="nc" id="L163">                        targetPaths.add(targetFile.getCanonicalPath());</span>
+<span class="nc" id="L164">                    } catch (IOException e1) {</span>
+<span class="nc" id="L165">                        logger.error(&quot;getCanonicalPath fail&quot;);</span>
+<span class="nc" id="L166">                        return;</span>
+<span class="nc" id="L167">                    }</span>
+                }
+<span class="nc" id="L169">                conf.setProperty(&quot;i18n.add.target.dir&quot;, targetTextField.getText());</span>
+
+<span class="nc" id="L171">                List&lt;String&gt; items = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L172">                tmps = itemTextField.getText().split(&quot;;&quot;);</span>
+<span class="nc bnc" id="L173" title="All 2 branches missed.">                for (String tmp : tmps) {</span>
+<span class="nc" id="L174">                    items.add(tmp);</span>
+                }
+<span class="nc" id="L176">                conf.setProperty(&quot;i18n.add.items&quot;, itemTextField.getText());</span>
+
+<span class="nc bnc" id="L178" title="All 2 branches missed.">                for (String targetPath : targetPaths) {</span>
+<span class="nc bnc" id="L179" title="All 2 branches missed.">                    for (String item : items) {</span>
+<span class="nc" id="L180">                        int ret = innerProcessor(srcPath, targetPath, item);</span>
+<span class="nc bnc" id="L181" title="All 2 branches missed.">                        if (ret != 0) {</span>
+<span class="nc" id="L182">                            Toolkit.getDefaultToolkit().beep();</span>
+<span class="nc" id="L183">                            JOptionPane.showMessageDialog(I18nAddPanel.this, &quot;Failed, please see the log&quot;, &quot;ERROR&quot;,</span>
+                                    JOptionPane.ERROR_MESSAGE);
+<span class="nc" id="L185">                            return;</span>
+                        }
+<span class="nc" id="L187">                    }</span>
+<span class="nc" id="L188">                }</span>
+<span class="nc" id="L189">            }</span>
+        });
+
+<span class="nc" id="L192">        operationPanel.add(addButton);</span>
+<span class="nc" id="L193">    }</span>
+
+    private void createItemPanel() {
+<span class="nc" id="L196">        itemPanel = new JPanel();</span>
+<span class="nc" id="L197">        Utils.setJComponentSize(itemPanel, PANEL_WIDTH, CHILD_PANEL_HIGHT);</span>
+<span class="nc" id="L198">        itemPanel.setLayout(new BoxLayout(itemPanel, BoxLayout.X_AXIS));</span>
+        
+<span class="nc" id="L200">        itemTextField = new JTextField();</span>
+<span class="nc" id="L201">        Utils.setJComponentSize(itemTextField, CHILD_PANEL_LEFT_WIDTH, CHILD_PANEL_HIGHT);</span>
+<span class="nc" id="L202">        itemTextField.setText(conf.getString(&quot;i18n.add.items&quot;));</span>
+
+<span class="nc" id="L204">        itemLabel = new JLabel(&quot;Items&quot;);</span>
+<span class="nc" id="L205">        Utils.setJComponentSize(itemLabel, CHILD_PANEL_RIGHT_WIDTH, CHILD_PANEL_HIGHT);</span>
+
+<span class="nc" id="L207">        itemPanel.add(itemTextField);</span>
+<span class="nc" id="L208">        itemPanel.add(Box.createHorizontalGlue());</span>
+<span class="nc" id="L209">        itemPanel.add(itemLabel);</span>
+<span class="nc" id="L210">    }</span>
+
+    private void createTargetPanel() {
+<span class="nc" id="L213">        targetPanel = new JPanel();</span>
+<span class="nc" id="L214">        Utils.setJComponentSize(targetPanel, PANEL_WIDTH, CHILD_PANEL_HIGHT);</span>
+<span class="nc" id="L215">        targetPanel.setLayout(new BoxLayout(targetPanel, BoxLayout.X_AXIS));</span>
+        
+<span class="nc" id="L217">        targetTextField = new JTextField();</span>
+<span class="nc" id="L218">        Utils.setJComponentSize(targetTextField, CHILD_PANEL_LEFT_WIDTH, CHILD_PANEL_HIGHT);</span>
+<span class="nc" id="L219">        targetTextField.setText(conf.getString(&quot;i18n.add.target.dir&quot;));</span>
+
+<span class="nc" id="L221">        targetButton = new JButton(&quot;Save Directory&quot;);</span>
+<span class="nc" id="L222">        Utils.setJComponentSize(targetButton, CHILD_PANEL_RIGHT_WIDTH, CHILD_PANEL_HIGHT);</span>
+<span class="nc" id="L223">        targetButton.addMouseListener(new MouseAdapter() {</span>
+            @Override
+            public void mousePressed(MouseEvent e) {
+<span class="nc" id="L226">                super.mousePressed(e);</span>
+<span class="nc" id="L227">                JFileChooser jfc = new JFileChooser();</span>
+<span class="nc" id="L228">                jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);</span>
+<span class="nc" id="L229">                jfc.setDialogTitle(&quot;save to&quot;);</span>
+<span class="nc" id="L230">                int ret = jfc.showDialog(new JLabel(), null);</span>
+<span class="nc bnc" id="L231" title="All 2 branches missed.">                switch (ret) {</span>
+                case JFileChooser.APPROVE_OPTION:
+<span class="nc" id="L233">                    File file = jfc.getSelectedFile();</span>
+<span class="nc" id="L234">                    targetTextField.setText(file.getAbsolutePath());</span>
+<span class="nc" id="L235">                    break;</span>
+
+                default:
+                    break;
+                }
+
+<span class="nc" id="L241">            }</span>
+        });
+
+<span class="nc" id="L244">        targetPanel.add(targetTextField);</span>
+<span class="nc" id="L245">        targetPanel.add(Box.createHorizontalGlue());</span>
+<span class="nc" id="L246">        targetPanel.add(targetButton);</span>
+<span class="nc" id="L247">    }</span>
+
+    private void createSourcePanel() {
+<span class="nc" id="L250">        sourcePanel = new JPanel();</span>
+<span class="nc" id="L251">        Utils.setJComponentSize(sourcePanel, PANEL_WIDTH, CHILD_PANEL_HIGHT);</span>
+<span class="nc" id="L252">        sourcePanel.setLayout(new BoxLayout(sourcePanel, BoxLayout.X_AXIS));</span>
+        
+<span class="nc" id="L254">        srcTextField = new JTextField();</span>
+<span class="nc" id="L255">        Utils.setJComponentSize(srcTextField, CHILD_PANEL_LEFT_WIDTH, CHILD_PANEL_HIGHT);</span>
+<span class="nc" id="L256">        srcTextField.setText(conf.getString(&quot;i18n.add.src.dir&quot;));</span>
+
+<span class="nc" id="L258">        srcButton = new JButton(&quot;Source Directory&quot;);</span>
+<span class="nc" id="L259">        Utils.setJComponentSize(srcButton, CHILD_PANEL_RIGHT_WIDTH, CHILD_PANEL_HIGHT);</span>
+<span class="nc" id="L260">        srcButton.addMouseListener(new MouseAdapter() {</span>
+            @Override
+            public void mousePressed(MouseEvent e) {
+<span class="nc" id="L263">                super.mousePressed(e);</span>
+<span class="nc" id="L264">                JFileChooser jFileChooser = new JFileChooser();</span>
+<span class="nc" id="L265">                jFileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);</span>
+<span class="nc" id="L266">                jFileChooser.setDialogTitle(&quot;select a directory&quot;);</span>
+<span class="nc" id="L267">                int ret = jFileChooser.showDialog(new JLabel(), null);</span>
+<span class="nc bnc" id="L268" title="All 2 branches missed.">                switch (ret) {</span>
+                case JFileChooser.APPROVE_OPTION:
+<span class="nc" id="L270">                    File file = jFileChooser.getSelectedFile();</span>
+<span class="nc" id="L271">                    srcTextField.setText(file.getAbsolutePath());</span>
+<span class="nc" id="L272">                    break;</span>
+                default:
+                    break;
+                }
+
+<span class="nc" id="L277">            }</span>
+        });
+
+<span class="nc" id="L280">        sourcePanel.add(srcTextField);</span>
+<span class="nc" id="L281">        sourcePanel.add(Box.createHorizontalGlue());</span>
+<span class="nc" id="L282">        sourcePanel.add(srcButton);</span>
+<span class="nc" id="L283">    }</span>
+
+    private int innerProcessor(String sourceBaseStr, String targetBaseStr, String itemName) {
+<span class="nc bnc" id="L286" title="All 2 branches missed.">        if (StringUtils.isAnyEmpty(sourceBaseStr, targetBaseStr, itemName)) {</span>
+<span class="nc" id="L287">            logger.error(&quot;params are invalid: sourceBaseStr: &quot; + sourceBaseStr + &quot;, targetBaseStr: &quot; + targetBaseStr</span>
+                    + &quot;, itemName: &quot; + itemName);
+<span class="nc" id="L289">            return -1;</span>
+        }
+<span class="nc" id="L291">        File sourceBaseFile = new File(sourceBaseStr);</span>
+<span class="nc" id="L292">        File targetBaseFile = new File(targetBaseStr);</span>
+<span class="nc" id="L293">        int count = 0;</span>
+
+<span class="nc" id="L295">        File[] sourceParentFiles = sourceBaseFile.listFiles(new FileFilter() {</span>
+            @Override
+            public boolean accept(File pathname) {
+<span class="nc" id="L298">                return pathname.getName().startsWith(&quot;values&quot;);</span>
+            }
+        });
+<span class="nc bnc" id="L301" title="All 2 branches missed.">        if (sourceParentFiles == null) {</span>
+<span class="nc" id="L302">            logger.error(&quot;sourceParentFiles is null&quot;);</span>
+<span class="nc" id="L303">            return -1;</span>
+        }
+<span class="nc bnc" id="L305" title="All 2 branches missed.">        for (File sourceParentFile : sourceParentFiles) {</span>
+<span class="nc" id="L306">            File sourceFile = new File(sourceParentFile, &quot;strings.xml&quot;);</span>
+
+<span class="nc" id="L308">            Element sourceElement = getSourceElement(sourceFile, itemName);</span>
+<span class="nc bnc" id="L309" title="All 2 branches missed.">            if (sourceElement == null) {</span>
+<span class="nc" id="L310">                logger.warn(&quot;sourceElement is null: &quot; + sourceFile);</span>
+<span class="nc" id="L311">                continue;</span>
+            }
+
+<span class="nc" id="L314">            File targetFile = new File(new File(targetBaseFile, sourceParentFile.getName()), &quot;strings.xml&quot;);</span>
+<span class="nc bnc" id="L315" title="All 2 branches missed.">            if (!targetFile.exists()) {</span>
+<span class="nc" id="L316">                logger.warn(&quot;targetFile does not exist: &quot; + sourceFile);</span>
+<span class="nc" id="L317">                continue;</span>
+            }
+            try {
+<span class="nc" id="L320">                prePocess(targetFile);</span>
+<span class="nc" id="L321">            } catch (IOException e) {</span>
+<span class="nc" id="L322">                logger.error(&quot;prePocess failed.&quot;, e);</span>
+<span class="nc" id="L323">                return -1;</span>
+<span class="nc" id="L324">            }</span>
+<span class="nc" id="L325">            boolean res = setTargetElement(targetFile, sourceElement, itemName);</span>
+<span class="nc bnc" id="L326" title="All 2 branches missed.">            if (!res) {</span>
+<span class="nc" id="L327">                logger.error(&quot;setTargetElement failed.&quot;);</span>
+<span class="nc" id="L328">                return -1;</span>
+            }
+            try {
+<span class="nc" id="L331">                postProcess(targetFile);</span>
+<span class="nc" id="L332">            } catch (IOException e) {</span>
+<span class="nc" id="L333">                logger.error(&quot;postProcess failed.&quot;, e);</span>
+<span class="nc" id="L334">                return -1;</span>
+<span class="nc" id="L335">            }</span>
+<span class="nc" id="L336">            logger.info(&quot;count: &quot; + (++count) + &quot;, in path: &quot; + sourceFile + &quot;, out path: &quot; + targetFile);</span>
+        }
+<span class="nc" id="L338">        logger.info(&quot;finish one cycle&quot;);</span>
+<span class="nc" id="L339">        return 0;</span>
+    }
+
+    private Element getSourceElement(File sourceFile, String itemName) {
+<span class="nc bnc" id="L343" title="All 2 branches missed.">        if (!sourceFile.exists()) {</span>
+<span class="nc" id="L344">            logger.warn(&quot;sourceFile does not exist: &quot; + sourceFile);</span>
+<span class="nc" id="L345">            return null;</span>
+        }
+<span class="nc" id="L347">        SAXBuilder builder = new SAXBuilder();</span>
+<span class="nc" id="L348">        Document sourceDoc = null;</span>
+<span class="nc" id="L349">        try (InputStream in = new FileInputStream(sourceFile)) {</span>
+<span class="nc" id="L350">            sourceDoc = builder.build(in);</span>
+<span class="nc" id="L351">            logger.info(&quot;build source document: &quot; + sourceFile);</span>
+<span class="nc" id="L352">        } catch (JDOMException | IOException e) {</span>
+<span class="nc" id="L353">            logger.error(&quot;build source document failed: &quot; + sourceFile, e);</span>
+<span class="nc" id="L354">            return null;</span>
+<span class="nc" id="L355">        }</span>
+<span class="nc bnc" id="L356" title="All 2 branches missed.">        if (sourceDoc == null) {</span>
+<span class="nc" id="L357">            logger.error(&quot;sourceDoc is null&quot;);</span>
+<span class="nc" id="L358">            return null;</span>
+        }
+<span class="nc" id="L360">        Element sourceElement = null;</span>
+<span class="nc bnc" id="L361" title="All 2 branches missed.">        for (Element sourceChild : sourceDoc.getRootElement().getChildren()) {</span>
+<span class="nc" id="L362">            String sourceValue = sourceChild.getAttributeValue(&quot;name&quot;);</span>
+<span class="nc bnc" id="L363" title="All 4 branches missed.">            if (sourceValue != null &amp;&amp; sourceValue.equals(itemName)) {</span>
+<span class="nc" id="L364">                sourceElement = sourceChild.clone();</span>
+<span class="nc" id="L365">                break;</span>
+            }
+<span class="nc" id="L367">        }</span>
+<span class="nc" id="L368">        return sourceElement;</span>
+    }
+
+    private boolean setTargetElement(File targetFile, Element sourceElement, String itemName) {
+<span class="nc" id="L372">        SAXBuilder builder = new SAXBuilder();</span>
+        Document targetDoc;
+        try {
+<span class="nc" id="L375">            targetDoc = builder.build(targetFile);</span>
+<span class="nc" id="L376">            logger.info(&quot;build target document: &quot; + targetFile);</span>
+<span class="nc" id="L377">        } catch (JDOMException | IOException e) {</span>
+<span class="nc" id="L378">            logger.error(&quot;build target document failed: &quot; + targetFile, e);</span>
+<span class="nc" id="L379">            return false;</span>
+<span class="nc" id="L380">        }</span>
+<span class="nc" id="L381">        Element targetRoot = targetDoc.getRootElement();</span>
+<span class="nc" id="L382">        boolean isFinished = false;</span>
+<span class="nc bnc" id="L383" title="All 2 branches missed.">        for (Element targetChild : targetRoot.getChildren()) {</span>
+<span class="nc" id="L384">            String targetValue = targetChild.getAttributeValue(&quot;name&quot;);</span>
+<span class="nc bnc" id="L385" title="All 4 branches missed.">            if (targetValue != null &amp;&amp; targetValue.equals(itemName)) {</span>
+<span class="nc" id="L386">                targetChild.setText(sourceElement.getText());</span>
+<span class="nc" id="L387">                isFinished = true;</span>
+<span class="nc" id="L388">                break;</span>
+            }
+<span class="nc" id="L390">        }</span>
+<span class="nc bnc" id="L391" title="All 2 branches missed.">        if (!isFinished) {</span>
+<span class="nc" id="L392">            targetRoot.addContent(&quot;    &quot;);</span>
+<span class="nc" id="L393">            targetRoot.addContent(sourceElement);</span>
+<span class="nc" id="L394">            targetRoot.addContent(&quot;\n&quot;);</span>
+        }
+<span class="nc" id="L396">        XMLOutputter out = new XMLOutputter();</span>
+<span class="nc" id="L397">        Format format = Format.getRawFormat();</span>
+<span class="nc" id="L398">        format.setEncoding(&quot;UTF-8&quot;);</span>
+<span class="nc" id="L399">        format.setLineSeparator(&quot;\n&quot;);</span>
+<span class="nc" id="L400">        out.setFormat(format);</span>
+<span class="nc" id="L401">        OutputStream os = null;</span>
+        try {
+<span class="nc" id="L403">            os = new FileOutputStream(targetFile);</span>
+<span class="nc" id="L404">            out.output(targetDoc, os);</span>
+<span class="nc" id="L405">        } catch (IOException e) {</span>
+<span class="nc" id="L406">            logger.error(&quot;output fail&quot;, e);</span>
+<span class="nc" id="L407">            return false;</span>
+        } finally {
+<span class="nc bnc" id="L409" title="All 2 branches missed.">            if (os != null) {</span>
+                try {
+<span class="nc" id="L411">                    os.close();</span>
+<span class="nc" id="L412">                } catch (IOException e) {</span>
+<span class="nc" id="L413">                    logger.error(&quot;close output stream exception&quot;, e);</span>
+<span class="nc" id="L414">                }</span>
+            }
+        }
+<span class="nc" id="L417">        return true;</span>
+    }
+
+    private static void prePocess(File file) throws IOException {
+<span class="nc" id="L421">        String content = FileUtils.readFileToString(file, CHARSET);</span>
+<span class="nc bnc" id="L422" title="All 2 branches missed.">        for (Map.Entry&lt;String, String&gt; entry : replace.entrySet()) {</span>
+<span class="nc" id="L423">            content = content.replaceAll(entry.getKey(), entry.getValue());</span>
+<span class="nc" id="L424">        }</span>
+<span class="nc" id="L425">        FileUtils.writeStringToFile(file, content, CHARSET);</span>
+<span class="nc" id="L426">    }</span>
+
+    private static void postProcess(File file) throws IOException {
+<span class="nc" id="L429">        String content = FileUtils.readFileToString(file, CHARSET);</span>
+<span class="nc bnc" id="L430" title="All 2 branches missed.">        for (Map.Entry&lt;String, String&gt; entry : replace.entrySet()) {</span>
+<span class="nc" id="L431">            content = content.replaceAll(entry.getValue(), entry.getKey());</span>
+<span class="nc" id="L432">        }</span>
+        if (REMOVE_LAST_LF_OPEN) {
+<span class="nc" id="L434">            content = StringUtils.removeEnd(content, &quot;\n&quot;);</span>
+        }
+<span class="nc" id="L436">        FileUtils.writeStringToFile(file, content, CHARSET);</span>
+<span class="nc" id="L437">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>

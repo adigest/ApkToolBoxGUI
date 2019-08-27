@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ZhUtils.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">APKToolBoxGUI</a> &gt; <a href="index.source.html" class="el_package">edu.jiangxin.apktoolbox.text.zhconvert</a> &gt; <span class="el_source">ZhUtils.java</span></div><h1>ZhUtils.java</h1><pre class="source lang-java linenums">package edu.jiangxin.apktoolbox.text.zhconvert;
+
+import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+/**
+ * @author jiangxin
+ * @author 2018-10-28
+ *
+ */
+<span class="nc" id="L12">public class ZhUtils {</span>
+
+    public static String convert2Traditional(String in) {
+<span class="nc" id="L15">        return ZhConverter.convert(in, ZhConverter.TRADITIONAL);</span>
+    }
+
+    public static String convert2Simplified(String in) {
+<span class="nc" id="L19">        return ZhConverter.convert(in, ZhConverter.SIMPLIFIED);</span>
+    }
+
+    public static boolean isTraditional(String in) {
+
+<span class="nc" id="L24">        ZhConverter converter = ZhConverter.getInstance(ZhConverter.SIMPLIFIED);</span>
+<span class="nc" id="L25">        Properties dict = converter.getDict();</span>
+<span class="nc bnc" id="L26" title="All 2 branches missed.">        for (int i = 0; i &lt; in.length(); i++) {</span>
+<span class="nc" id="L27">            char c = in.charAt(i);</span>
+<span class="nc" id="L28">            String key = &quot;&quot; + c;</span>
+<span class="nc bnc" id="L29" title="All 2 branches missed.">            if (dict.containsKey(key)) {</span>
+<span class="nc" id="L30">                return true;</span>
+            }
+        }
+<span class="nc" id="L33">        return false;</span>
+    }
+
+    public static boolean isContainsChinese(String str) {
+
+<span class="nc" id="L38">        String regEx = &quot;[\u4e00-\u9fa5]&quot;;</span>
+<span class="nc" id="L39">        Pattern pat = Pattern.compile(regEx);</span>
+<span class="nc" id="L40">        Matcher matcher = pat.matcher(str);</span>
+<span class="nc" id="L41">        boolean flg = false;</span>
+<span class="nc bnc" id="L42" title="All 2 branches missed.">        if (matcher.find()) {</span>
+<span class="nc" id="L43">            flg = true;</span>
+        }
+<span class="nc" id="L45">        return flg;</span>
+    }
+
+    public static boolean isAllChinese(String str) {
+
+<span class="nc" id="L50">        boolean flag = true;</span>
+<span class="nc bnc" id="L51" title="All 4 branches missed.">        if (str == null || str.trim().isEmpty()) {</span>
+<span class="nc" id="L52">            return false;</span>
+        }
+
+<span class="nc" id="L55">        int length = str.length();</span>
+<span class="nc bnc" id="L56" title="All 2 branches missed.">        for (int i = 0; i &lt; length; i++) {</span>
+<span class="nc bnc" id="L57" title="All 2 branches missed.">            if (!isContainsChinese(str.substring(i, i + 1))) {</span>
+<span class="nc" id="L58">                flag = false;</span>
+<span class="nc" id="L59">                break;</span>
+            }
+        }
+
+<span class="nc" id="L63">        return flag;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.2.201808211720</span></div></body></html>
